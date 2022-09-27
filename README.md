@@ -7,10 +7,10 @@ This repository is used to develop and structure code for the Challenge-X, which
 Team Members
 ------------
 
-Cédric Künzi
-Simon Luder
+- Cédric Künzi 
 
-------------
+- Simon Luder
+
 
 Project Organization
 ------------
