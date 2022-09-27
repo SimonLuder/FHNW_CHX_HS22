@@ -3,6 +3,15 @@ FHNW_chx_HS22
 
 This repository is used to develop and structure code for the Challenge-X, which is being carry out as a group project in the Data Science FHNW course during the autumn semester of 2022.
 
+
+Team Members
+------------
+
+Cédric Künzi
+Simon Luder
+
+------------
+
 Project Organization
 ------------
 
@@ -48,7 +57,5 @@ Project Organization
         │
         └── visualization  <- Scripts to create exploratory and results oriented visualizations
             └── visualize.py
-
-
 
 --------
