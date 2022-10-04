@@ -59,3 +59,7 @@ Project Organization
             └── visualize.py
 
 --------
+
+Data:
+
+After downloading the code, a folder data/raw in the root project has to be made. The data has to be loaded in raw. The data can be found in the Teams project.
