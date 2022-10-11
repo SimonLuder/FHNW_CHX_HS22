@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def clean_data(path_to_file: str, file: str) -> dict(pd.DataFrame):
+def clean_data(path_to_file: str, file: str) -> dict:
     """
     Function to clean data
     """
@@ -36,7 +36,9 @@ def clean_data(path_to_file: str, file: str) -> dict(pd.DataFrame):
     # create dict with dataframes for each garage
     all_parkings = {}
     for i in df['id2'].unique():
-        all_parkings[i] = df[df['id2'] == i].reset_index(drop=True)
+        df_part = df[df['id2'] == i]
+        df_part = df_part.set_index('published')
+        all_parkings[i] = df_part.sort_index()
 
     # drop nans in free for defined garages
     all_parkings['centralbahnparking'].dropna(subset=['free'], inplace=True)
