@@ -32,26 +32,12 @@ def clean_data(path_to_file: str, file: str) -> dict:
                 i += 1
         return df
     df = replace_with_nan(df)
-
-    # create dict with dataframes for each garage
-    all_parkings = {}
-    for i in df['id2'].unique():
-        df_part = df[df['id2'] == i]
-        df_part = df_part.set_index('published')
-        all_parkings[i] = df_part.sort_index()
-
-    # drop nans in free for defined garages
-    all_parkings['centralbahnparking'].dropna(subset=['free'], inplace=True)
-    all_parkings['badbahnhof'].dropna(subset=['free'], inplace=True)
-    all_parkings['messe'].dropna(subset=['free'], inplace=True)
-    all_parkings['anfos'].dropna(subset=['free'], inplace=True)
-    all_parkings['europe'].dropna(subset=['free'], inplace=True)
-
-    # interpolate nans in free for defined garages
-    all_parkings['clarahuus']['free'].interpolate(method='linear', inplace=True)
-    all_parkings['postbasel']['free'].interpolate(method='linear', inplace=True)
-    all_parkings['bahnhofsued']['free'].interpolate(method='linear', inplace=True)
-
     # delete garage claramatte
-    del all_parkings['claramatte']
-    return all_parkings
+    df = df[df['id2'] != 'claramatte']
+
+    # interpolate nans in free spots
+    for i in df['id2'].unique():
+        df.loc[df['id2'] == i,'free'] = df.loc[df['id2'] == i,'free'].interpolate(method='linear')
+    df = df.iloc[1:,:]
+    df['free'] = df['free'].round().astype(int)
+    return df
