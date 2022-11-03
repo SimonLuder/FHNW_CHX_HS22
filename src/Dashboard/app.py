@@ -28,18 +28,22 @@ app.layout = html.Div([
     )
     ])
 
-@app.callback(
-    Output("map", "children"),
-    [Input("input-latitude", "value"), Input("input-longitude", "value")]
-)
-def update_map(lat, lon):
-    positions_ = parking_route([lat, lon]).get_route_to()
-    positions_ = list(map(lambda x: [x[1], x[0]], positions_))
-    print(positions_)
-    patterns_ = [dict(offset='12', repeat='25', dash=dict(pixelSize=10, pathOptions=dict(color='#f00', weight=2))),
-            dict(offset='0', repeat='25', dash=dict(pixelSize=0))]
-    route = dl.PolylineDecorator(positions=positions_, patterns=patterns_)
-    return [dl.TileLayer(), route]
+# @app.callback(
+#     Output("map", "children"),
+#     [Input("input-latitude", "value"), Input("input-longitude", "value")]
+# )
+# def update_map(lat, lon):
+    # positions_ = parking_route([lon, lat]).get_route_to()
+@app.callback(Output("map", "children"), [Input("map", "click_lat_lng")])
+def map_click(click_lat_lng):
+    if click_lat_lng is not None:
+        positions_ = parking_route([click_lat_lng[1], click_lat_lng[0]]).get_route_to()
+        positions_ = list(map(lambda x: [x[1], x[0]], positions_))
+        patterns_ = [dict(offset='0', repeat='1', dash=dict(pixelSize=8, pathOptions=dict(color='#f00', weight=2)))]
+        route = dl.PolylineDecorator(positions=positions_, patterns=patterns_)
+        return [dl.TileLayer(), route]
+    else:
+        return [dl.TileLayer()]
 
 if __name__ == '__main__':
     app.run_server(debug=True)

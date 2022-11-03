@@ -56,7 +56,7 @@ class distance:
         self.distance = {}
         self.__client = '5b3ce3597851110001cf624861b0095d93d34e199ad718c53eb21e01'
 
-    def __call_distance(self, parking: str):
+    def get_distances(self, parking: str):
         '''
         Calculates the distance between two points.
         Args:
@@ -68,22 +68,13 @@ class distance:
         # get distance in seconds
         call = requests.post('https://api.openrouteservice.org/v2/matrix/driving-car', json=body, headers=headers)
         output = call.json()
-        return {j: i for i, j in zip(output['durations'][0][1:], self.parkings.keys())}
-
-    
-    def get_distances(self):
-        '''
-        Calculates the distance for all parkings.
-        '''
-        for i in self.parkings.keys():
-            self.distance[i] = self.__call_distance(i)
-            break
+        self.distance = {j:i for i, j in zip(output['durations'][0][1:], list(self.parkings.keys()))}
 
     def get_closest_parking(self):
         '''
         Returns the closest parking.
         '''
-        self.get_distances()
+        self.get_distances(self.location)
         return min(self.distance, key=self.distance.get)
 
 

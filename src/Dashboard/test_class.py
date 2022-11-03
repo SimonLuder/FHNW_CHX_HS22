@@ -10,8 +10,9 @@ from function_class import distance, route, parking_route
 # print(rtf)
 
 pr = parking_route([7.337910, 47.175010]).get_route_to()
-for i in pr:
-    if type(i[0]) == float and type(i[1]) == float:
-        pass
-    else:
-        print('Nooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo')
+print(pr)
+# for i in pr:
+#     if type(i[0]) == float and type(i[1]) == float:
+#         pass
+#     else:
+#         print('Nooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo')
