@@ -4,18 +4,77 @@ import requests
 import pandas as pd
 import openrouteservice as ors
 import json
+from torch import nn
+import torch
+import os
+
+class CNN2_Dropout(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.network = nn.Sequential(
+            nn.Conv1d(in_channels=1, out_channels=64, kernel_size=3),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=1),
+            nn.Conv1d(in_channels=64, out_channels=128, kernel_size=3),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=1),
+            nn.Conv1d(in_channels=128, out_channels=64, kernel_size=3),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=1),
+            nn.Conv1d(in_channels=64, out_channels=64, kernel_size=3),
+            nn.ReLU(),
+            nn.MaxPool1d(2, stride=2),
+            nn.Flatten(),
+            nn.Linear(1152, 1),
+            nn.Dropout(0.2)
+        )
+
+    def forward(self, x):
+        x = x.reshape(x.shape[1], 1, x.shape[0])
+        logits = self.network(x)
+        return logits
 
 class prediction:
-
     # TODO
     def __init__(self):
+        self.model_ = CNN2_Dropout()
+        self.model_.load_state_dict(torch.load(os.path.join(os.getcwd(), 'src', 'Dashboard', 'CNN2_V2.pth')))
+        self.model_.eval()
+        self.parkings = {}
+        self.max_parkings = {'Parkhaus Aeschen': 97.0,
+                            'anfos': 162.0,
+                            'badbahnhof': 750.0,
+                            'bahnhofsued': 100.0,
+                            'centralbahnparking': 286.0,
+                            'city': 1114.0,
+                            'clarahuus': 52.0,
+                            'Parkhaus Claramatte': 170.0,
+                            'elisabethen': 840.0,
+                            'europe': 120.0,
+                            'kunstmuseum': 350.0,
+                            'messe': 752.0,
+                            'postbasel': 72.0,
+                            'rebgasse': 250.0, 
+                            'steinen': 526.0,
+                            'storchen': 142.0}
         pass
-        # self.parkings = {}
         # self.__timestamp = self.get_timestamp()
 
-    # def get_timestamp(self):
-    #     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    def predict(self):
+        data = self._get_data()
+        for i in list(data.parkings):
+            data_park = data[data['parkings'] == i]['available'].to_list()[0].strip().strip('][').split(',')
+            self.parkings[i] = self.model_(torch.FloatTensor([[float(i.strip())] for i in data_park])).item()
+
+    def get_timestamp(self):
+        return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
+    def _get_data(self):
+        data = pd.read_csv(os.path.join(os.getcwd(), 'src', 'Dashboard', 'test_data.csv'), sep=';')
+        data.columns = ["parkings", "available"]
+        data.parkings = data.parkings.apply(lambda x: x.strip("'"))
+        return data
+
     # def __call_newest_data(self, url):
     #     '''
     #     Requests the newest data from the data.bs.ch api and returns it as pandas dataframe.
@@ -31,7 +90,10 @@ class prediction:
     #         raise (f"An exception occured: {e}")
 
     def get_free_parkings(self):
-        return ['aeschen', 'anfos', 'badbahnhof', 'bahnhofsued', 'centralbahnparking', 'city', 'clarahuus', 'elisabethen', 'europe', 'kunstmuseum', 'messe', 'postbasel', 'rebgasse', 'steinen', 'storchen']
+        self.predict()
+        free_parkings = [park[0] for park in self.parkings.items() if park[1] < (self.max_parkings[park[0]]-5)]
+        return free_parkings
+        # return ['aeschen', 'anfos', 'badbahnhof', 'bahnhofsued', 'centralbahnparking', 'city', 'clarahuus', 'elisabethen', 'europe', 'kunstmuseum', 'messe', 'postbasel', 'rebgasse', 'steinen', 'storchen']
 
 
 class distance:
