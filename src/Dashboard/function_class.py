@@ -35,12 +35,12 @@ class CNN2_Dropout(nn.Module):
         return logits
 
 class prediction:
-    # TODO
     def __init__(self):
         self.model_ = CNN2_Dropout()
         self.model_.load_state_dict(torch.load(os.path.join(os.getcwd(), 'src', 'Dashboard', 'CNN2_V2.pth')))
         self.model_.eval()
         self.parkings = {}
+        self.current_occupation = {}
         self.max_parkings = {'Parkhaus Aeschen': 97.0,
                             'anfos': 162.0,
                             'badbahnhof': 750.0,
@@ -65,6 +65,13 @@ class prediction:
         for i in list(data.parkings):
             data_park = data[data['parkings'] == i]['available'].to_list()[0].strip().strip('][').split(',')
             self.parkings[i] = self.model_(torch.FloatTensor([[float(i.strip())] for i in data_park])).item()
+        # print(data.available.values)
+        # print(list(map(lambda x: x.strip(']').strip('[').split(), data['available'].values)))
+        # print()
+        av_data = list(map(lambda x: x.strip(']').strip('[').split(), data['available'].values))
+        av_data = list(map(lambda x: float(x[-1]), av_data))
+        self.current_occupation = dict(zip(data.parkings.values, av_data))
+        return self.current_occupation
 
     def get_timestamp(self):
         return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -90,9 +97,9 @@ class prediction:
     #         raise (f"An exception occured: {e}")
 
     def get_free_parkings(self):
-        self.predict()
+        available = self.predict()
         free_parkings = [park[0] for park in self.parkings.items() if park[1] < (self.max_parkings[park[0]]-5)]
-        return free_parkings
+        return free_parkings, self.parkings, available
         # return ['aeschen', 'anfos', 'badbahnhof', 'bahnhofsued', 'centralbahnparking', 'city', 'clarahuus', 'elisabethen', 'europe', 'kunstmuseum', 'messe', 'postbasel', 'rebgasse', 'steinen', 'storchen']
 
 
@@ -118,7 +125,7 @@ class distance:
         self.distance = {}
         self.__client = '5b3ce3597851110001cf624861b0095d93d34e199ad718c53eb21e01'
 
-    def get_distances(self, parking: str):
+    def get_distances(self):
         '''
         Calculates the distance between two points.
         Args:
@@ -136,8 +143,8 @@ class distance:
         '''
         Returns the closest parking.
         '''
-        self.get_distances(self.location)
-        return min(self.distance, key=self.distance.get)
+        self.get_distances()
+        return min(self.distance, key=self.distance.get), min(self.distance.values())
 
 
 class route:
@@ -174,27 +181,28 @@ class route:
 
 
 class parking_route:
-    def __init__(self, location_: list):
-        self.location_ = location_
+    def __init__(self, current_location_: list, wanted_location_: list):
+        self.current_location_ = current_location_
+        self.wanted_location_ = wanted_location_
     
     def get_free_parkings_prediction(self):
         '''
         Returns all parkings with free spots. (list with names)
         '''
-        valid_parkings = prediction().get_free_parkings()
-        return valid_parkings
+        valid_parkings, preds, available = prediction().get_free_parkings()
+        return valid_parkings, available, preds
 
     def get_closest_parking_calculation(self):
         '''
         Returns the closest parking.
         '''
-        valid_parkings = self.get_free_parkings_prediction()
-        closest_parking = distance(self.location_, valid_parkings).get_closest_parking()
-        return closest_parking
+        valid_parkings, available, preds = self.get_free_parkings_prediction()
+        closest_parking = distance(self.wanted_location_, valid_parkings).get_closest_parking()
+        return *closest_parking, available[closest_parking[0]], preds[closest_parking[0]]
 
     def get_route_to(self):
         '''
         Returns the route to the closest parking.
         '''
-        close = self.get_closest_parking_calculation()
-        return route(self.location_).get_route(close)
+        close, time, available, preds = self.get_closest_parking_calculation()
+        return route(self.current_location_).get_route(close), time, close, available, preds
