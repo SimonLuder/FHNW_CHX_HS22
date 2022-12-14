@@ -3,16 +3,6 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 
-def update_timestamps(df, col):
-    '''
-    Updates the timestamp of a given column in the dataframe and returns the updated df
-    '''
-    df["published"] = pd.to_datetime(df["published"], utc=True) + timedelta(hours=2)
-    df = df.sort_values(by='published')
-    df = df.reset_index(drop=True)
-    return df
-
-
 def resample_timestamp(df, t="5Min", how="mean", ignore_cols=None):
     '''
     Resamples the timeseries timestamp per garages to a specified time intervall.
@@ -150,7 +140,7 @@ class Interpolator:
             df = self.__interpolate_scipy(df, method, t)
         return df
 
-    
+
     def __interpolate_scipy(self, df, method, t, categorical_columns=["title", "name", "id2"]):
 
         df = df.set_index("published")
