@@ -82,24 +82,10 @@ class prediction:
         data.parkings = data.parkings.apply(lambda x: x.strip("'"))
         return data
 
-    # def __call_newest_data(self, url):
-    #     '''
-    #     Requests the newest data from the data.bs.ch api and returns it as pandas dataframe.
-    #     Args:
-    #         url (str): url where the api is located
-    #     '''
-    #     try:
-    #         r = requests.get(url)
-    #         df = pd.DataFrame(r.json())
-    #         df = df.dropna(axis="rows")
-    #         return df['Anteil', 'id2']
-    #     except requests.exceptions.RequestException as e:  # This is the correct syntax
-    #         raise (f"An exception occured: {e}")
-
     def get_free_parkings(self):
         available = self.predict()
         free_parkings = [park[0] for park in self.parkings.items() if park[1] < (self.max_parkings[park[0]]-5)]
-        return free_parkings, self.parkings, available
+        return free_parkings, self.parkings, available, self.max_parkings
         # return ['aeschen', 'anfos', 'badbahnhof', 'bahnhofsued', 'centralbahnparking', 'city', 'clarahuus', 'elisabethen', 'europe', 'kunstmuseum', 'messe', 'postbasel', 'rebgasse', 'steinen', 'storchen']
 
 
@@ -135,7 +121,7 @@ class distance:
         headers = {'Authorization': self.__client}
         
         # get distance in seconds
-        call = requests.post('https://api.openrouteservice.org/v2/matrix/driving-car', json=body, headers=headers)
+        call = requests.post('https://api.openrouteservice.org/v2/matrix/foot-walking', json=body, headers=headers)
         output = call.json()
         self.distance = {j:i for i, j in zip(output['durations'][0][1:], list(self.parkings.keys()))}
 
@@ -189,20 +175,20 @@ class parking_route:
         '''
         Returns all parkings with free spots. (list with names)
         '''
-        valid_parkings, preds, available = prediction().get_free_parkings()
-        return valid_parkings, available, preds
+        valid_parkings, preds, available, max_parkings = prediction().get_free_parkings()
+        return valid_parkings, available, preds, max_parkings
 
     def get_closest_parking_calculation(self):
         '''
         Returns the closest parking.
         '''
-        valid_parkings, available, preds = self.get_free_parkings_prediction()
+        valid_parkings, available, preds, max_parkings = self.get_free_parkings_prediction()
         closest_parking = distance(self.wanted_location_, valid_parkings).get_closest_parking()
-        return *closest_parking, available[closest_parking[0]], preds[closest_parking[0]]
+        return *closest_parking, available[closest_parking[0]], preds[closest_parking[0]], max_parkings[closest_parking[0]]
 
     def get_route_to(self):
         '''
         Returns the route to the closest parking.
         '''
-        close, time, available, preds = self.get_closest_parking_calculation()
-        return route(self.current_location_).get_route(close), time, close, available, preds
+        close, time, available, preds, max_parking = self.get_closest_parking_calculation()
+        return route(self.current_location_).get_route(close), time, close, available, preds, max_parking

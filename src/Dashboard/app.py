@@ -17,7 +17,7 @@ app.layout = html.Div([
     dbc.Row(
         [dbc.Col(
             [html.H2(["infos"]),
-            html.Div(children='Kurze Beschreibung wie es funktioniert')],
+            html.Div(children='Kurze Beschreibung wie es funktioniert: Der erste Punkt ist wo man hinwill, der zweite wo man ist. Das Parkhaus, welches zu Fuss am nächsten vom Punkt ist an dem man ist und frei ist, wird ausgewählt. Der Weg für das Auto zum Parkhaus wird angezeigt.')],
             width=2,
             style={'margin': "15px"}
         ),
@@ -42,11 +42,11 @@ def map_click(counter, current_pos, wanted_pos):
         if counter % 2 != 0:
             return [dl.TileLayer([current_pos[1], current_pos[0]]), current_pos, counter, {}]
         else:
-            positions_, time_to_parking, parking_name, current_available, predictions = parking_route([current_pos[1], current_pos[0]], [wanted_pos[1], wanted_pos[0]]).get_route_to()
+            positions_, time_to_parking, parking_name, current_available, predictions, max_parking = parking_route([current_pos[1], current_pos[0]], [wanted_pos[1], wanted_pos[0]]).get_route_to()
             positions_ = list(map(lambda x: [x[1], x[0]], positions_))
             patterns_ = [dict(offset='0', repeat='1', dash=dict(pixelSize=8, pathOptions=dict(color='#f00', weight=2)))]
             route = dl.PolylineDecorator(positions=positions_, patterns=patterns_)
-            return [[dl.TileLayer(), route], wanted_pos, counter, [time_to_parking, parking_name, current_available, predictions]]
+            return [[dl.TileLayer(), route], wanted_pos, counter, [time_to_parking, parking_name, current_available, predictions, max_parking]]
     return [dl.TileLayer(), wanted_pos, 0, {}]
 
 @app.callback(Output("parkhaus_info", "children"), [Input("save_parking_infos", "children")])
@@ -56,7 +56,8 @@ def update_parkhaus_info(current_pos):
         trend = '+' if current_pos[2] > current_pos[3] else '-'
         return [html.H4("Parkhaus: " + current_pos[1]),
                 html.H4("Freie Parkplätze: " + str(current_pos[2])),
-                html.H4("Zeit zum Parkhaus (Min): " + str(round(current_pos[0]/60, 1))),
+                html.H4("Maximale Anzahl Parkplätze: " + str(current_pos[4])),
+                html.H4("Zeit vom Parkhaus zum gewünschten Ort zu Fuss (Min): " + str(round(current_pos[0]/60, 1))),
                 html.H4("Trend: " + trend, style={'color': 'green' if trend == '+' else 'red'})]
     return "Keine Parkhausinfos verfügbar"
 
