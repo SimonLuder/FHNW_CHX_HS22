@@ -25,6 +25,7 @@ Project Organization
     ├── models             <- Trained and serialized models, model predictions, or model summaries
     │
     ├── notebooks          <- Jupyter notebooks
+    |    └── archive       <- Old notebooks
     │
     ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
     │                         generated with `pip freeze > requirements.txt`
@@ -54,8 +55,7 @@ The notebooks for the data exploration can be found in the notebooks folder.
 - Forecasting_CNN.ipynb: different CNN models for forecasting the number of available parking spaces in a parking
 - Forecasting_different_parkings.ipynb: forecasting for different parkings using CNN models
 - Forecasting_with_Deep_Learning.ipynb: forecasting with LSTM models
-- Live Data Evaluation.ipynb: cleaning and forecasting with LSTM on live data
-- live_data.ipynb: to delete TODO
+- prep_live_data.ipynb: cleaning and forecasting with LSTM on live data
 - live_data_collector.ipynb: code for collecting live data
 - Timeseries_analysis: to delete TODO
 - Eda_statistical_forecasting.ipynb: forecasting using statistical methods
@@ -63,7 +63,7 @@ The notebooks for the data exploration can be found in the notebooks folder.
 - model_architectures.py: contains the different model architectures used in the notebooks
 - helper.py: contains helper functions used in the notebooks (for data cleaning etc.)
 - dashboard_data_api.py: contains the functions to get the live data for the dashboard
-- collect_live_data.py: contains the functions to collect the live data
+- live_data_collector.py: contains the functions to collect the live data
 - clean_data.py: to delete TODO
 
 The most important files are the eda_timeseries.ipynb for the data exploration, the Eda_statistiscal_forecasting.ipynb for the exploration of statistical methods for forecasting, the Forecasting_with_Deep_Learning.ipynb and Foreasting_CNN.ipynb for the exploration of deep learning methods for forecasting and the live_data_collector.ipynb for the live data collection.
