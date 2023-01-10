@@ -7,38 +7,50 @@ import json
 from torch import nn
 import torch
 import os
+import torch.nn.functional as F
 
-class CNN2_Dropout(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.network = nn.Sequential(
-            nn.Conv1d(in_channels=1, out_channels=64, kernel_size=3),
-            nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2, stride=1),
-            nn.Conv1d(in_channels=64, out_channels=128, kernel_size=3),
-            nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2, stride=1),
-            nn.Conv1d(in_channels=128, out_channels=64, kernel_size=3),
-            nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2, stride=1),
-            nn.Conv1d(in_channels=64, out_channels=64, kernel_size=3),
-            nn.ReLU(),
-            nn.MaxPool1d(2, stride=2),
-            nn.Flatten(),
-            nn.Linear(1152, 1),
-            nn.Dropout(0.2)
-        )
-
+class CNNForecaster(nn.Module):
+    def __init__(self, kernel_size=3, pool_size=2, padding=0, conv1_channels = 120, 
+                 conv2_channels=120, conv3_channels=120, fc_linear_1=180, dropout=0.4):
+        '''Convolutional Net class'''
+        super(CNNForecaster, self).__init__()
+        
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=conv1_channels, kernel_size=kernel_size, padding=padding) 
+        self.conv2 = nn.Conv1d(in_channels=conv1_channels, out_channels=conv2_channels, kernel_size=kernel_size, padding=padding) 
+        self.conv3 = nn.Conv1d(in_channels=conv2_channels, out_channels=conv3_channels, kernel_size=kernel_size, padding=padding) 
+        
+        self.pool = nn.MaxPool1d(kernel_size=pool_size, stride=1)
+        
+        self.fc1 = nn.Linear(in_features=conv3_channels*15, out_features=fc_linear_1)
+        self.fc2 = nn.Linear(in_features=fc_linear_1, out_features=1)
+        
+        self.conv3_channels = conv3_channels
+        
+        self.dropout = nn.Dropout(p=dropout)
+        
+        self.flatten = nn.Flatten()
+        
     def forward(self, x):
-        x = x.reshape(x.shape[1], 1, x.shape[0])
-        logits = self.network(x)
-        return logits
+        '''
+        Applies the forward pass
+        Args:
+            x (torch.tensor): input feature tensor
+        Returns:
+            x (torch.tensor): output tensor of size num_classes
+        '''
+        x = x.reshape(x.shape[0], 1, x.shape[1])
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = self.pool(F.relu(self.conv3(x)))
+        x = self.flatten(x)
+        
+        x = F.relu(self.fc1(x))
+        x = self.dropout(x)
+        x = self.fc2(x)
+        return x
 
 class prediction:
     def __init__(self):
-        self.model_ = CNN2_Dropout()
-        self.model_.load_state_dict(torch.load(os.path.join(os.getcwd(), 'src', 'Dashboard', 'CNN2_V2.pth')))
-        self.model_.eval()
         self.parkings = {}
         self.current_occupation = {}
         self.max_parkings = {'Parkhaus Aeschen': 97.0,
@@ -57,17 +69,33 @@ class prediction:
                             'rebgasse': 250.0, 
                             'steinen': 526.0,
                             'storchen': 142.0}
-        pass
-        # self.__timestamp = self.get_timestamp()
+        self.vocab = {'Parkhaus Aeschen': 'aeschen',
+                        'Parkhaus Anfos': 'anfos',
+                        'Parkhaus Bad. Bahnhof': 'badbahnhof',
+                        'Parkhaus Bahnhof Süd': 'bahnhofsued',
+                        'Parkhaus Centralbahnparking': 'centralbahnparking',
+                        'Parkhaus City': 'city',
+                        'Parkhaus Clarahuus': 'clarahuus',
+                        'Parkhaus Claramatte': 'Parkhaus Claramatte',
+                        'Parkhaus Elisabethen': 'elisabethen',
+                        'Parkhaus Europe': 'europe',
+                        'Parkhaus Kunstmuseum': 'kunstmuseum',
+                        'Parkhaus Messe': 'messe',
+                        'Parkhaus Post Basel': 'postbasel',
+                        'Parkhaus Rebgasse': 'rebgasse',
+                        'Parkhaus Steinen': 'steinen',
+                        'Parkhaus Storchen': 'storchen'}
 
     def predict(self):
         data = self._get_data()
         for i in list(data.parkings):
+            model = CNNForecaster()
+            vocab = {i: j for j, i in self.vocab.items()}
+            model.load_state_dict(torch.load(os.path.join(os.getcwd(), 'src', 'Dashboard', 'models', vocab[i] + '_cnn.pth')))
+            model.eval()
             data_park = data[data['parkings'] == i]['available'].to_list()[0].strip().strip('][').split(',')
-            self.parkings[i] = self.model_(torch.FloatTensor([[float(i.strip())] for i in data_park])).item()
-        # print(data.available.values)
-        # print(list(map(lambda x: x.strip(']').strip('[').split(), data['available'].values)))
-        # print()
+            print(len([float(i.strip('\t').strip()) for i in data_park]))
+            self.parkings[i] = model(torch.FloatTensor([[float(i.strip('\t').strip())] for i in data_park])).item()
         av_data = list(map(lambda x: x.strip(']').strip('[').split(), data['available'].values))
         av_data = list(map(lambda x: float(x[-1]), av_data))
         self.current_occupation = dict(zip(data.parkings.values, av_data))
