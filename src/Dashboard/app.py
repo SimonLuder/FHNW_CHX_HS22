@@ -16,8 +16,8 @@ app.layout = html.Div([
     html.Div(id='save_parking_infos', children={}, style={'display': 'none'}),
     dbc.Row(
         [dbc.Col(
-            [html.H2(["infos"]),
-            html.Div(children='Kurze Beschreibung wie es funktioniert: Der erste Punkt ist wo man hinwill, der zweite wo man ist. Das Parkhaus, welches zu Fuss am nächsten vom Punkt ist an dem man ist und frei ist, wird ausgewählt. Der Weg für das Auto zum Parkhaus wird angezeigt.')],
+            [html.H2(["Infos"]),
+            html.Div(children='Funktionsweise: Der erste Klick auf die Karte definiert den Standort, welchen man erreichen will. Der zweite Klick definiert den aktuellen Standort. Das Parkhaus welches angezeigt wird, ist in 20 Minuten noch frei und ist zu Fuss am nächsten vom gewünschten Standort.')],
             width=2,
             style={'margin': "15px"}
         ),
@@ -53,12 +53,19 @@ def map_click(counter, current_pos, wanted_pos):
 def update_parkhaus_info(current_pos):
     if current_pos != {}:
         # + heisst es wird mehr freie Parkplätze haben
-        trend = '+' if current_pos[2] > current_pos[3] else '-'
+        trend = 'weniger freie Parkplätze' if current_pos[2] > current_pos[3] else 'mehr freie Parkplätze'
+        if (current_pos[3] >= 0) and (current_pos[3] <= current_pos[4]):
+            free_parking = str(round(current_pos[3]))
+        elif current_pos[3] < 0:
+            free_parking = str(0)
+        else:
+            free_parking = str(current_pos[4])
         return [html.H4("Parkhaus: " + current_pos[1]),
-                html.H4("Freie Parkplätze: " + str(current_pos[2])),
+                html.H4("Freie Parkplätze: " + str(round(current_pos[2]))),
                 html.H4("Maximale Anzahl Parkplätze: " + str(current_pos[4])),
                 html.H4("Zeit vom Parkhaus zum gewünschten Ort zu Fuss (Min): " + str(round(current_pos[0]/60, 1))),
-                html.H4("Trend: " + trend, style={'color': 'green' if trend == '+' else 'red'})]
+                html.H4("Trend: " + trend, style={'color': 'green' if trend == 'mehr freie Parkplätze' else 'red'}),
+                html.H4("Vorhersage: " + free_parking + "freie Parkplätze in 20 Minuten")]
     return "Keine Parkhausinfos verfügbar"
 
 if __name__ == '__main__':

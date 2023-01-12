@@ -69,7 +69,7 @@ class prediction:
                             'rebgasse': 250.0, 
                             'steinen': 526.0,
                             'storchen': 142.0}
-        self.vocab = {'Parkhaus Aeschen': 'aeschen',
+        self.vocab = {'Parkhaus Aeschen': 'Parkhaus Aeschen',
                         'Parkhaus Anfos': 'anfos',
                         'Parkhaus Bad. Bahnhof': 'badbahnhof',
                         'Parkhaus Bahnhof Süd': 'bahnhofsued',
@@ -85,18 +85,17 @@ class prediction:
                         'Parkhaus Rebgasse': 'rebgasse',
                         'Parkhaus Steinen': 'steinen',
                         'Parkhaus Storchen': 'storchen'}
+        self.vocab_i = {i: j for j, i in self.vocab.items()}
 
     def predict(self):
         data = self._get_data()
         for i in list(data.parkings):
             model = CNNForecaster()
-            vocab = {i: j for j, i in self.vocab.items()}
-            model.load_state_dict(torch.load(os.path.join(os.getcwd(), 'src', 'Dashboard', 'models', vocab[i] + '_cnn.pth')))
+            model.load_state_dict(torch.load(os.path.join(os.getcwd(), 'src', 'Dashboard', 'models', self.vocab_i[i] + '_cnn.pth')))
             model.eval()
             data_park = data[data['parkings'] == i]['available'].to_list()[0].strip().strip('][').split(',')
-            print(len([float(i.strip('\t').strip()) for i in data_park]))
-            self.parkings[i] = model(torch.FloatTensor([[float(i.strip('\t').strip())] for i in data_park])).item()
-        av_data = list(map(lambda x: x.strip(']').strip('[').split(), data['available'].values))
+            self.parkings[i] = model(torch.FloatTensor([[float(i.strip())] for i in data_park]).reshape(1, -1)).item()
+        av_data = list(map(lambda x: x.strip().strip(']').strip('[').split(','), data['available'].values))
         av_data = list(map(lambda x: float(x[-1]), av_data))
         self.current_occupation = dict(zip(data.parkings.values, av_data))
         return self.current_occupation
@@ -105,9 +104,9 @@ class prediction:
         return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     def _get_data(self):
-        data = pd.read_csv(os.path.join(os.getcwd(), 'src', 'Dashboard', 'test_data.csv'), sep=';')
+        data = pd.read_csv(os.path.join(os.getcwd(), 'src', 'Dashboard', 'test_data.csv'), sep=':')
         data.columns = ["parkings", "available"]
-        data.parkings = data.parkings.apply(lambda x: x.strip("'"))
+        data.parkings = data.parkings.apply(lambda x: self.vocab[x.strip("'")])
         return data
 
     def get_free_parkings(self):
