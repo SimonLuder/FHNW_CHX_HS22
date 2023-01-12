@@ -65,7 +65,7 @@ def update_parkhaus_info(current_pos):
                 html.H4("Maximale Anzahl Parkplätze: " + str(current_pos[4])),
                 html.H4("Zeit vom Parkhaus zum gewünschten Ort zu Fuss (Min): " + str(round(current_pos[0]/60, 1))),
                 html.H4("Trend: " + trend, style={'color': 'green' if trend == 'mehr freie Parkplätze' else 'red'}),
-                html.H4("Vorhersage: " + free_parking + "freie Parkplätze in 20 Minuten")]
+                html.H4("Vorhersage: " + free_parking + " freie Parkplätze in 20 Minuten")]
     return "Keine Parkhausinfos verfügbar"
 
 if __name__ == '__main__':
