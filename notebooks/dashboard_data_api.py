@@ -5,7 +5,7 @@ import pprint
 import os
 import time
 from datetime import datetime, timedelta
-from collect_live_data import LiveDataCollector
+from live_data_collector import LiveDataCollector
 from helper import update_timestamps, resample_timestamp, interpolate_historic, Interpolator
 
 import warnings

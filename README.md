@@ -31,13 +31,7 @@ Project Organization
     │                         generated with `pip freeze > requirements.txt`
     │
     └── src                <- Source code for use in this project.
-        ├── __init__.py    <- Makes src a Python module
-        │
-        │
-        ├── models         <- Scripts to train models and then use trained models to make
-        │   │                 predictions
-        │   ├── predict_model.py
-        │   └── train_model.py
+        ├── __init__.py    <- Makes src a Python modules
         │
         └── Dashboard      <- Code to cretae the dashboard, with the data and the model
 
@@ -50,23 +44,22 @@ After downloading the code, a folder data/raw in the root project has to be made
 Exploration:
 
 The notebooks for the data exploration can be found in the notebooks folder. 
-- EDA_Parking.ipynb: to delete TODO
 - eda_timeseries.ipynb: exploration of the time series data
 - Forecasting_CNN.ipynb: different CNN models for forecasting the number of available parking spaces in a parking
 - Forecasting_different_parkings.ipynb: forecasting for different parkings using CNN models
 - Forecasting_with_Deep_Learning.ipynb: forecasting with LSTM models
 - prep_live_data.ipynb: cleaning and forecasting with LSTM on live data
 - live_data_collector.ipynb: code for collecting live data
-- Timeseries_analysis: to delete TODO
+- eda_corona_historic.ipynb: Shows the influence of the corona pandemic on the number of available parking spaces
 - Eda_statistical_forecasting.ipynb: forecasting using statistical methods
 
 - model_architectures.py: contains the different model architectures used in the notebooks
 - helper.py: contains helper functions used in the notebooks (for data cleaning etc.)
 - dashboard_data_api.py: contains the functions to get the live data for the dashboard
 - live_data_collector.py: contains the functions to collect the live data
-- clean_data.py: to delete TODO
+- clean_data.py: first function to clean the data
 
-The most important files are the eda_timeseries.ipynb for the data exploration, the Eda_statistiscal_forecasting.ipynb for the exploration of statistical methods for forecasting, the Forecasting_with_Deep_Learning.ipynb and Foreasting_CNN.ipynb for the exploration of deep learning methods for forecasting and the live_data_collector.ipynb for the live data collection.
+The most important files are the eda_timeseries.ipynb for the data exploration, the Eda_statistical_forecasting.ipynb for the exploration of statistical methods for forecasting, the Forecasting_with_Deep_Learning.ipynb and Foreasting_CNN.ipynb for the exploration of deep learning methods for forecasting and the live_data_collector.ipynb for the live data collection.
 
 Dashbaord:
 
@@ -74,8 +67,8 @@ In the src/Dashboard folder is the code for the dashboard.
 - app.py: contains the code for the dashboard
 - function_class.py: contains the functions for the dashboard (model architecture, distance calculation etc.)
 - test_class.py: contains the test functions for the dashboard
-- test_data.csv: contains the test data for the dashboard (fake data)
-- .pth files: contains the trained models for the dashboard
+- test_data.csv/test_data1.txt: contains the test data for the dashboard (fake data)
+- models folder: contains the models for the dashboard
 
 The dashboard can be started in the command shell. For this you have to be in the folder for this project and then type in the command shell: 'python -m src.Dashboard.app'
 
