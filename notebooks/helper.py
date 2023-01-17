@@ -124,6 +124,11 @@ class Interpolator:
     def interpolate(self, df, method="linear", t="5Min"):
         '''
         This method is used to start the interpolation
+        Args: 
+            df: pandas DataFrame
+            method: interpolation type
+            t: imterpolation time intervalls
+            
         '''
 
         df = df.copy()
